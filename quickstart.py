@@ -1,4 +1,5 @@
 from __future__ import print_function
+import click
 import pickle
 import os.path
 from googleapiclient.discovery import build
@@ -14,7 +15,28 @@ SAMPLE_SPREADSHEET_ID = "1zVHrMiVbWPRKUMoYsAYwuvuNT3AGtAmu1P6Gyj7aa6Q"
 SAMPLE_RANGE_NAME = "Fall  18!A1:E"
 
 
-def main():
+@click.command()
+@click.option(
+    "--link",
+    "-l",
+    default="https://docs.google.com/spreadsheets/d/1zVHrMiVbWPRKUMoYsAYwuvuNT3AGtAmu1P6Gyj7aa6Q/edit#gid=423768437",
+    help="Link to google sheet",
+)
+def main(link):
+    arr_link = link.split("/")
+    # Check if link is valid spreadsheet URL
+    if (
+        len(arr_link) >= 7
+        and arr_link[2] == "docs.google.com"
+        and arr_link[3] == "spreadsheets"
+    ):
+        # print(link)
+        SAMPLE_SPREADSHEET_ID = arr_link[5]
+
+    else:
+        # print(arr_link)
+        raise ValueError("Link must be a valid Google Sheets URL")
+
     """Shows basic usage of the Sheets API.
     Prints values from a sample spreadsheet.
     """
@@ -57,7 +79,7 @@ def main():
         # with null values
         df_replace = df.replace([""], [None])
 
-        # convert back to list to insert into Redshift
+        # convert back to list
         processed_dataset = df_replace.values.tolist()
         # print('Name, Major:')
         for row in processed_dataset:
